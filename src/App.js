@@ -1,25 +1,112 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from 'react'
+import swal from 'sweetalert'
 
-function App() {
+const initialItems = [
+  { id: 1, description: 'Passports', quantity: 2, packed: false },
+  { id: 2, description: 'Socks', quantity: 12, packed: true },
+  { id: 3, description: 'Charger', quantity: 1, packed: true }
+]
+
+export default function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <Logo />
+      <Form />
+      <PackingList />
+      <Stats />
     </div>
-  );
+  )
 }
 
-export default App;
+function Logo() {
+  return (
+    <h1>
+      <span className="header-icon">🌴</span>
+      <span className="title">
+        <span>Far</span>
+        <span>Away</span>
+      </span>
+      <span className="header-icon">🧳</span>
+    </h1>
+  )
+}
+
+function Form() {
+  const [description, setDescription] = useState('')
+  const [quantity, setQuantity] = useState(1)
+
+  function handleSubmit(evt) {
+    evt.preventDefault()
+    const txtDescription = evt.target.querySelector('input[type="text"]')
+
+    if (!description.trim()) {
+      setDescription('')
+      swal({
+        text: 'Please insert a description for the item',
+        icon: 'error',
+        buttons: {
+          cancel: 'Close'
+        }
+      }).then(value => {
+        console.log(txtDescription.focus())
+      })
+      return
+    }
+    const newPackingItem = { description, quantity, packed: false, id: Date.now() }
+
+    setDescription('')
+    setQuantity(1)
+    txtDescription.focus()
+  }
+
+  return (
+    <form className="add-form" onSubmit={handleSubmit}>
+      <h3>What do you need for your 😍 trip?</h3>
+      <label className="select-quantity" htmlFor="select-quantity">
+        <select id="select-quantity" value={quantity} onChange={evt => setQuantity(Number(evt.target.value))}>
+          {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+            <option value={num} key={num}>
+              {num}
+            </option>
+          ))}
+        </select>
+        <svg viewbox="0 0 10 6">
+          <polyline points="1 1 5 5 9 1"></polyline>
+        </svg>
+      </label>
+      <input type="text" placeholder="Item..." value={description} onChange={evt => setDescription(evt.target.value)} />
+      <button>Add</button>
+    </form>
+  )
+}
+
+function PackingList() {
+  return (
+    <div className="list">
+      <ul>
+        {initialItems.map(({ id, description, quantity, packed }) => (
+          <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} />
+        ))}
+      </ul>
+    </div>
+  )
+}
+
+function Stats() {
+  return (
+    <footer className="stats">
+      <em>💼You have X items on your list, and you already packed Y (Z%)</em>
+    </footer>
+  )
+}
+
+function PackingItem({ id, description, quantity, packed }) {
+  return (
+    <li id={id}>
+      <span style={packed ? { textDecoration: 'line-through' } : {}}>
+        {quantity} {description}
+      </span>
+      {packed ? ' ✅' : ' ❌'}
+    </li>
+  )
+}
