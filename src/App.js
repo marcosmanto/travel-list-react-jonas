@@ -8,11 +8,17 @@ const initialItems = [
 ]
 
 export default function App() {
+  const [items, setItems] = useState([])
+
+  function handleAddItems(item) {
+    setItems(items => [...items, item])
+  }
+
   return (
     <div className="app">
       <Logo />
-      <Form />
-      <PackingList />
+      <Form onAddItems={handleAddItems} />
+      <PackingList items={items} />
       <Stats />
     </div>
   )
@@ -31,7 +37,7 @@ function Logo() {
   )
 }
 
-function Form() {
+function Form({ onAddItems }) {
   const [description, setDescription] = useState('')
   const [quantity, setQuantity] = useState(1)
 
@@ -54,6 +60,8 @@ function Form() {
     }
     const newPackingItem = { description, quantity, packed: false, id: Date.now() }
 
+    onAddItems(newPackingItem)
+
     setDescription('')
     setQuantity(1)
     txtDescription.focus()
@@ -62,29 +70,31 @@ function Form() {
   return (
     <form className="add-form" onSubmit={handleSubmit}>
       <h3>What do you need for your 😍 trip?</h3>
-      <label className="select-quantity" htmlFor="select-quantity">
-        <select id="select-quantity" value={quantity} onChange={evt => setQuantity(Number(evt.target.value))}>
-          {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
-            <option value={num} key={num}>
-              {num}
-            </option>
-          ))}
-        </select>
-        <svg viewbox="0 0 10 6">
-          <polyline points="1 1 5 5 9 1"></polyline>
-        </svg>
-      </label>
-      <input type="text" placeholder="Item..." value={description} onChange={evt => setDescription(evt.target.value)} />
-      <button>Add</button>
+      <div>
+        <label className="select-quantity" htmlFor="select-quantity">
+          <select id="select-quantity" value={quantity} onChange={evt => setQuantity(Number(evt.target.value))}>
+            {Array.from({ length: 20 }, (_, i) => i + 1).map(num => (
+              <option value={num} key={num}>
+                {num}
+              </option>
+            ))}
+          </select>
+          <svg viewbox="0 0 10 6">
+            <polyline points="1 1 5 5 9 1"></polyline>
+          </svg>
+        </label>
+        <input type="text" placeholder="Item..." value={description} onChange={evt => setDescription(evt.target.value)} />
+        <button>Add</button>
+      </div>
     </form>
   )
 }
 
-function PackingList() {
+function PackingList({ items }) {
   return (
     <div className="list">
       <ul>
-        {initialItems.map(({ id, description, quantity, packed }) => (
+        {items.map(({ id, description, quantity, packed }) => (
           <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} />
         ))}
       </ul>
