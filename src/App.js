@@ -1,12 +1,6 @@
 import { useState } from 'react'
 import swal from 'sweetalert'
 
-const initialItems = [
-  { id: 1, description: 'Passports', quantity: 2, packed: false },
-  { id: 2, description: 'Socks', quantity: 12, packed: true },
-  { id: 3, description: 'Charger', quantity: 1, packed: true }
-]
-
 export default function App() {
   const [items, setItems] = useState([])
 
@@ -14,11 +8,15 @@ export default function App() {
     setItems(items => [...items, item])
   }
 
+  function handleDeleteItem(id) {
+    setItems(items => items.filter(i => i.id !== id))
+  }
+
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} />
       <Stats />
     </div>
   )
@@ -90,12 +88,12 @@ function Form({ onAddItems }) {
   )
 }
 
-function PackingList({ items }) {
+function PackingList({ items, onDeleteItem }) {
   return (
     <div className="list">
       <ul>
         {items.map(({ id, description, quantity, packed }) => (
-          <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} />
+          <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} onDeleteItem={onDeleteItem} />
         ))}
       </ul>
     </div>
@@ -110,13 +108,13 @@ function Stats() {
   )
 }
 
-function PackingItem({ id, description, quantity, packed }) {
+function PackingItem({ id, description, quantity, packed, onDeleteItem }) {
   return (
     <li id={id}>
       <span style={packed ? { textDecoration: 'line-through' } : {}}>
-        {quantity} {description}
+        <span className="pack-item-quantity">{quantity}</span> {description}
       </span>
-      {packed ? ' ✅' : ' ❌'}
+      <button onClick={() => onDeleteItem(id)}>{packed ? ' ✅' : ' ❌'}</button>
     </li>
   )
 }
