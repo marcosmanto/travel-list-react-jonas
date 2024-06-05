@@ -12,12 +12,16 @@ export default function App() {
     setItems(items => items.filter(i => i.id !== id))
   }
 
+  function handleToggleItem(id) {
+    setItems(items => items.map(item => (item.id === id ? { ...item, packed: !item.packed } : item)))
+  }
+
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} onDeleteItem={handleDeleteItem} />
-      <Stats />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} onToggleItem={handleToggleItem} />
+      <Stats items={items} />
     </div>
   )
 }
@@ -88,29 +92,75 @@ function Form({ onAddItems }) {
   )
 }
 
-function PackingList({ items, onDeleteItem }) {
+function PackingList({ items, onDeleteItem, onToggleItem }) {
+  const [sortBy, setSortBy] = useState('input')
+
+  let sortedItems
+
+  if (sortBy === 'input') sortedItems = items
+  if (sortBy === 'description') sortedItems = items.toSorted((a, b) => a.description.localeCompare(b.description))
+  if (sortBy === 'packed') sortedItems = items.slice().sort((a, b) => a.packed - b.packed)
+  if (sortBy === 'quantity') sortedItems = items.toSorted((a, b) => b.quantity - a.quantity)
+
   return (
     <div className="list">
       <ul>
-        {items.map(({ id, description, quantity, packed }) => (
-          <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} onDeleteItem={onDeleteItem} />
+        {sortedItems.map(({ id, description, quantity, packed }) => (
+          <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} onDeleteItem={onDeleteItem} onToggleItem={onToggleItem} />
         ))}
       </ul>
+      <div className="actions">
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+          <option value="input">Sort by input order</option>
+          <option value="description">Sort by description</option>
+          <option value="packed">Sort by packed status</option>
+          <option value="quantity">Sort by quantity</option>
+        </select>
+      </div>
     </div>
   )
 }
 
-function Stats() {
+function Stats({ items }) {
+  const totalItems = items.length
+
+  if (totalItems === 0) {
+    return (
+      <p className="stats">
+        <em>Start adding some items to your packing list 🚀</em>
+      </p>
+    )
+  }
+
+  const packedItems = items.filter(item => item.packed).length
+  const percentage = Math.round((packedItems / totalItems) * 100)
   return (
     <footer className="stats">
-      <em>💼You have X items on your list, and you already packed Y (Z%)</em>
+      <em>
+        {percentage === 100 ? (
+          <>You got everything! Ready to go 🛫</>
+        ) : (
+          <>
+            💼You have {totalItems} items on your list, and you already packed {packedItems} ({percentage}%)
+          </>
+        )}
+      </em>
     </footer>
   )
 }
 
-function PackingItem({ id, description, quantity, packed, onDeleteItem }) {
+function PackingItem({ id, description, quantity, packed, onDeleteItem, onToggleItem }) {
   return (
     <li id={id}>
+      <span>
+        <input
+          type="checkbox"
+          value={packed}
+          onChange={() => {
+            onToggleItem(id)
+          }}
+        />
+      </span>
       <span style={packed ? { textDecoration: 'line-through' } : {}}>
         <span className="pack-item-quantity">{quantity}</span> {description}
       </span>
