@@ -16,11 +16,15 @@ export default function App() {
     setItems(items => items.map(item => (item.id === id ? { ...item, packed: !item.packed } : item)))
   }
 
+  function handleClearItems() {
+    setItems([])
+  }
+
   return (
     <div className="app">
       <Logo />
       <Form onAddItems={handleAddItems} />
-      <PackingList items={items} onDeleteItem={handleDeleteItem} onToggleItem={handleToggleItem} />
+      <PackingList items={items} onDeleteItem={handleDeleteItem} onToggleItem={handleToggleItem} onClearItems={handleClearItems} />
       <Stats items={items} />
     </div>
   )
@@ -92,8 +96,25 @@ function Form({ onAddItems }) {
   )
 }
 
-function PackingList({ items, onDeleteItem, onToggleItem }) {
+function PackingList({ items, onDeleteItem, onToggleItem, onClearItems }) {
   const [sortBy, setSortBy] = useState('input')
+
+  function clearList() {
+    swal({
+      title: 'Are you sure?',
+      text: 'Once deleted, you will not be able to recover the list!',
+      icon: 'warning',
+      buttons: true,
+      dangerMode: true
+    }).then(willDelete => {
+      if (willDelete) {
+        onClearItems()
+        swal('List has been deleted!', {
+          icon: 'success'
+        })
+      }
+    })
+  }
 
   let sortedItems
 
@@ -109,14 +130,17 @@ function PackingList({ items, onDeleteItem, onToggleItem }) {
           <PackingItem id={id} description={description} quantity={quantity} packed={packed} key={id} onDeleteItem={onDeleteItem} onToggleItem={onToggleItem} />
         ))}
       </ul>
-      <div className="actions">
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
-          <option value="input">Sort by input order</option>
-          <option value="description">Sort by description</option>
-          <option value="packed">Sort by packed status</option>
-          <option value="quantity">Sort by quantity</option>
-        </select>
-      </div>
+      {items.length > 0 && (
+        <div className="actions">
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)}>
+            <option value="input">Sort by input order</option>
+            <option value="description">Sort by description</option>
+            <option value="packed">Sort by packed status</option>
+            <option value="quantity">Sort by quantity</option>
+          </select>
+          <button onClick={clearList}>Clear list</button>
+        </div>
+      )}
     </div>
   )
 }
